@@ -12,7 +12,7 @@
 
 terraform {
   required_version = ">= 1.0"
-  
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -24,17 +24,17 @@ terraform {
 # Module metadata for documentation and governance
 locals {
   module_metadata = {
-    name            = "aws-dms-module"
-    version         = "1.0.0"
-    release_date    = "2026-01-05"
-    description     = "AWS DMS module for database migration with security best practices"
-    author          = "Infrastructure Team"
-    license         = "MIT"
-    
+    name         = "aws-dms-module"
+    version      = "1.0.0"
+    release_date = "2026-01-05"
+    description  = "AWS DMS module for database migration with security best practices"
+    author       = "Infrastructure Team"
+    license      = "MIT"
+
     # Compatibility matrix
     terraform_version = ">= 1.0"
-    aws_provider     = "~> 6.26"
-    
+    aws_provider      = "~> 6.26"
+
     # Feature flags for this version
     features = {
       secrets_manager_integration = true
@@ -44,12 +44,12 @@ locals {
       security_groups_managed     = true
       flexible_networking         = true
     }
-    
+
     # Breaking changes from previous versions
     breaking_changes = [
       "v1.0.0: Initial release - no breaking changes"
     ]
-    
+
     # Deprecation notices
     deprecated_features = []
   }

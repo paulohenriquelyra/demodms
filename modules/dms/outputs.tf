@@ -13,14 +13,14 @@
 output "dms_instance" {
   description = "Complete DMS replication instance information including ARN, ID, endpoint details, and configuration"
   value = {
-    arn                = aws_dms_replication_instance.main.replication_instance_arn
-    id                 = aws_dms_replication_instance.main.replication_instance_id
-    engine_version     = aws_dms_replication_instance.main.engine_version
-    instance_class     = aws_dms_replication_instance.main.replication_instance_class
-    allocated_storage  = aws_dms_replication_instance.main.allocated_storage
-    multi_az          = aws_dms_replication_instance.main.multi_az
-    private_ips       = aws_dms_replication_instance.main.replication_instance_private_ips
-    public_ips        = aws_dms_replication_instance.main.replication_instance_public_ips
+    arn                    = aws_dms_replication_instance.main.replication_instance_arn
+    id                     = aws_dms_replication_instance.main.replication_instance_id
+    engine_version         = aws_dms_replication_instance.main.engine_version
+    instance_class         = aws_dms_replication_instance.main.replication_instance_class
+    allocated_storage      = aws_dms_replication_instance.main.allocated_storage
+    multi_az               = aws_dms_replication_instance.main.multi_az
+    private_ips            = aws_dms_replication_instance.main.replication_instance_private_ips
+    public_ips             = aws_dms_replication_instance.main.replication_instance_public_ips
     vpc_security_group_ids = aws_dms_replication_instance.main.vpc_security_group_ids
   }
 }
@@ -33,11 +33,11 @@ output "dms_instance" {
 output "replication_task" {
   description = "Complete replication task information including ARN, ID, status, and configuration details"
   value = {
-    arn                = aws_dms_replication_task.main.replication_task_arn
-    id                 = aws_dms_replication_task.main.replication_task_id
-    migration_type     = aws_dms_replication_task.main.migration_type
-    status            = aws_dms_replication_task.main.status
-    table_mappings    = aws_dms_replication_task.main.table_mappings
+    arn                       = aws_dms_replication_task.main.replication_task_arn
+    id                        = aws_dms_replication_task.main.replication_task_id
+    migration_type            = aws_dms_replication_task.main.migration_type
+    status                    = aws_dms_replication_task.main.status
+    table_mappings            = aws_dms_replication_task.main.table_mappings
     replication_task_settings = aws_dms_replication_task.main.replication_task_settings
   }
 }
@@ -51,22 +51,22 @@ output "endpoints" {
   description = "Complete source and target endpoint information including ARNs, IDs, and connection details"
   value = {
     source = {
-      arn         = aws_dms_endpoint.source.endpoint_arn
-      id          = aws_dms_endpoint.source.endpoint_id
-      engine_name = aws_dms_endpoint.source.engine_name
-      server_name = aws_dms_endpoint.source.server_name
-      port        = aws_dms_endpoint.source.port
+      arn           = aws_dms_endpoint.source.endpoint_arn
+      id            = aws_dms_endpoint.source.endpoint_id
+      engine_name   = aws_dms_endpoint.source.engine_name
+      server_name   = aws_dms_endpoint.source.server_name
+      port          = aws_dms_endpoint.source.port
       database_name = aws_dms_endpoint.source.database_name
-      ssl_mode    = aws_dms_endpoint.source.ssl_mode
+      ssl_mode      = aws_dms_endpoint.source.ssl_mode
     }
     target = {
-      arn         = aws_dms_endpoint.target.endpoint_arn
-      id          = aws_dms_endpoint.target.endpoint_id
-      engine_name = aws_dms_endpoint.target.engine_name
-      server_name = aws_dms_endpoint.target.server_name
-      port        = aws_dms_endpoint.target.port
+      arn           = aws_dms_endpoint.target.endpoint_arn
+      id            = aws_dms_endpoint.target.endpoint_id
+      engine_name   = aws_dms_endpoint.target.engine_name
+      server_name   = aws_dms_endpoint.target.server_name
+      port          = aws_dms_endpoint.target.port
       database_name = aws_dms_endpoint.target.database_name
-      ssl_mode    = aws_dms_endpoint.target.ssl_mode
+      ssl_mode      = aws_dms_endpoint.target.ssl_mode
     }
   }
 }
@@ -80,16 +80,16 @@ output "network" {
   description = "Network infrastructure information including security groups, subnet groups, and VPC details"
   value = {
     security_group = {
-      id   = aws_security_group.dms.id
-      arn  = aws_security_group.dms.arn
-      name = aws_security_group.dms.name
+      id     = aws_security_group.dms.id
+      arn    = aws_security_group.dms.arn
+      name   = aws_security_group.dms.name
       vpc_id = aws_security_group.dms.vpc_id
     }
     subnet_group = {
       id                = aws_dms_replication_subnet_group.main.id
       subnet_group_name = aws_dms_replication_subnet_group.main.replication_subnet_group_id
       subnet_ids        = aws_dms_replication_subnet_group.main.subnet_ids
-      vpc_id           = aws_dms_replication_subnet_group.main.vpc_id
+      vpc_id            = aws_dms_replication_subnet_group.main.vpc_id
     }
   }
 }

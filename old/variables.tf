@@ -262,7 +262,7 @@ variable "source_secrets_manager_arn" {
   default     = ""
 
   validation {
-    condition = var.source_secrets_manager_arn == "" || can(regex("^arn:aws:secretsmanager:", var.source_secrets_manager_arn))
+    condition     = var.source_secrets_manager_arn == "" || can(regex("^arn:aws:secretsmanager:", var.source_secrets_manager_arn))
     error_message = "Secrets Manager ARN must be a valid AWS Secrets Manager ARN or empty."
   }
 }
@@ -280,7 +280,7 @@ variable "source_secrets_access_role_arn" {
   default     = ""
 
   validation {
-    condition = var.source_secrets_access_role_arn == "" || can(regex("^arn:aws:iam:", var.source_secrets_access_role_arn))
+    condition     = var.source_secrets_access_role_arn == "" || can(regex("^arn:aws:iam:", var.source_secrets_access_role_arn))
     error_message = "IAM role ARN must be a valid AWS IAM role ARN or empty."
   }
 }
@@ -301,7 +301,7 @@ variable "source_ssl_mode" {
   default     = "require"
 
   validation {
-    condition = contains(["none", "require", "verify-ca", "verify-full"], var.source_ssl_mode)
+    condition     = contains(["none", "require", "verify-ca", "verify-full"], var.source_ssl_mode)
     error_message = "SSL mode must be one of: none, require, verify-ca, verify-full."
   }
 }
@@ -431,7 +431,7 @@ variable "target_secrets_manager_arn" {
   default     = ""
 
   validation {
-    condition = var.target_secrets_manager_arn == "" || can(regex("^arn:aws:secretsmanager:", var.target_secrets_manager_arn))
+    condition     = var.target_secrets_manager_arn == "" || can(regex("^arn:aws:secretsmanager:", var.target_secrets_manager_arn))
     error_message = "Secrets Manager ARN must be a valid AWS Secrets Manager ARN or empty."
   }
 }
@@ -449,7 +449,7 @@ variable "target_secrets_access_role_arn" {
   default     = ""
 
   validation {
-    condition = var.target_secrets_access_role_arn == "" || can(regex("^arn:aws:iam:", var.target_secrets_access_role_arn))
+    condition     = var.target_secrets_access_role_arn == "" || can(regex("^arn:aws:iam:", var.target_secrets_access_role_arn))
     error_message = "IAM role ARN must be a valid AWS IAM role ARN or empty."
   }
 }
@@ -470,7 +470,7 @@ variable "target_ssl_mode" {
   default     = "require"
 
   validation {
-    condition = contains(["none", "require", "verify-ca", "verify-full"], var.target_ssl_mode)
+    condition     = contains(["none", "require", "verify-ca", "verify-full"], var.target_ssl_mode)
     error_message = "SSL mode must be one of: none, require, verify-ca, verify-full."
   }
 }
@@ -612,7 +612,7 @@ variable "dms_engine_version" {
   default     = "3.5.3"
 
   validation {
-    condition = can(regex("^[0-9]+\\.[0-9]+\\.[0-9]+$", var.dms_engine_version))
+    condition     = can(regex("^[0-9]+\\.[0-9]+\\.[0-9]+$", var.dms_engine_version))
     error_message = "Engine version must follow semantic versioning format (e.g., '3.5.3')."
   }
 }
@@ -809,7 +809,7 @@ variable "network_isolation_level" {
   default     = "strict"
 
   validation {
-    condition = contains(["strict", "standard", "basic"], var.network_isolation_level)
+    condition     = contains(["strict", "standard", "basic"], var.network_isolation_level)
     error_message = "Network isolation level must be one of: strict, standard, basic."
   }
 }
@@ -882,7 +882,7 @@ variable "backup_retention_days" {
   default     = 7
 
   validation {
-    condition = var.backup_retention_days >= 1 && var.backup_retention_days <= 35
+    condition     = var.backup_retention_days >= 1 && var.backup_retention_days <= 35
     error_message = "Backup retention must be between 1 and 35 days."
   }
 }
@@ -900,7 +900,7 @@ variable "preferred_maintenance_window" {
   default     = "sun:03:00-sun:04:00"
 
   validation {
-    condition = can(regex("^(mon|tue|wed|thu|fri|sat|sun):[0-2][0-9]:[0-5][0-9]-(mon|tue|wed|thu|fri|sat|sun):[0-2][0-9]:[0-5][0-9]$", var.preferred_maintenance_window))
+    condition     = can(regex("^(mon|tue|wed|thu|fri|sat|sun):[0-2][0-9]:[0-5][0-9]-(mon|tue|wed|thu|fri|sat|sun):[0-2][0-9]:[0-5][0-9]$", var.preferred_maintenance_window))
     error_message = "Maintenance window must be in format 'day:hh:mm-day:hh:mm' (e.g., 'sun:03:00-sun:04:00')."
   }
 }
@@ -964,12 +964,12 @@ variable "tags" {
   }
 
   validation {
-    condition = length(var.tags) <= 50
+    condition     = length(var.tags) <= 50
     error_message = "Maximum 50 additional tags allowed (AWS limit is 50 total tags per resource)."
   }
 
   validation {
-    condition = !contains(keys(var.tags), "Name")
+    condition     = !contains(keys(var.tags), "Name")
     error_message = "The 'Name' tag is automatically managed and cannot be overridden."
   }
 }

@@ -8,6 +8,10 @@
 crash.log
 crash.*.log
 
+# Terraform template backups (gerados pelo script)
+main.tf.backup
+main.tf.generated
+
 # IDE files
 .vscode/
 .idea/

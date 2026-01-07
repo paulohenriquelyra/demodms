@@ -216,24 +216,24 @@ variable "source_endpoint_config" {
     - Development: Direct credentials acceptable for testing
   EOT
   type = object({
-    engine_name                     = string
+    engine_name = string
     # Secrets Manager configuration (when enabled)
     secrets_manager_arn             = optional(string, "")
     secrets_manager_access_role_arn = optional(string, "")
     # Direct credential configuration (when Secrets Manager disabled)
-    server_name                     = optional(string, "")
-    port                           = optional(number, 3306)
-    username                       = optional(string, "")
-    password                       = optional(string, "")
-    database_name                  = optional(string, "")
+    server_name   = optional(string, "")
+    port          = optional(number, 3306)
+    username      = optional(string, "")
+    password      = optional(string, "")
+    database_name = optional(string, "")
     # Connection settings
-    ssl_mode                       = optional(string, "none")
-    extra_connection_attributes    = optional(string, "")
+    ssl_mode                    = optional(string, "none")
+    extra_connection_attributes = optional(string, "")
   })
 
   validation {
     condition = contains([
-      "mysql", "postgres", "oracle", "sqlserver", 
+      "mysql", "postgres", "oracle", "sqlserver",
       "aurora", "aurora-mysql", "aurora-postgresql",
       "mariadb", "mongodb", "redis", "s3"
     ], var.source_endpoint_config.engine_name)
@@ -241,22 +241,22 @@ variable "source_endpoint_config" {
   }
 
   validation {
-    condition = var.source_endpoint_config.port >= 1 && var.source_endpoint_config.port <= 65535
+    condition     = var.source_endpoint_config.port >= 1 && var.source_endpoint_config.port <= 65535
     error_message = "Port must be between 1 and 65535."
   }
 
   validation {
-    condition = contains(["none", "require", "verify-ca", "verify-full"], var.source_endpoint_config.ssl_mode)
+    condition     = contains(["none", "require", "verify-ca", "verify-full"], var.source_endpoint_config.ssl_mode)
     error_message = "SSL mode must be one of: none, require, verify-ca, verify-full."
   }
 
   validation {
-    condition = var.source_endpoint_config.secrets_manager_arn == "" || can(regex("^arn:aws:secretsmanager:", var.source_endpoint_config.secrets_manager_arn))
+    condition     = var.source_endpoint_config.secrets_manager_arn == "" || can(regex("^arn:aws:secretsmanager:", var.source_endpoint_config.secrets_manager_arn))
     error_message = "Secrets Manager ARN must be a valid AWS Secrets Manager ARN or empty."
   }
 
   validation {
-    condition = var.source_endpoint_config.secrets_manager_access_role_arn == "" || can(regex("^arn:aws:iam:", var.source_endpoint_config.secrets_manager_access_role_arn))
+    condition     = var.source_endpoint_config.secrets_manager_access_role_arn == "" || can(regex("^arn:aws:iam:", var.source_endpoint_config.secrets_manager_access_role_arn))
     error_message = "Secrets Manager access role ARN must be a valid AWS IAM role ARN or empty."
   }
 }
@@ -281,19 +281,19 @@ variable "target_endpoint_config" {
     - Development: SSL recommended, direct credentials acceptable
   EOT
   type = object({
-    engine_name                     = string
+    engine_name = string
     # Secrets Manager configuration (when enabled)
     secrets_manager_arn             = optional(string, "")
     secrets_manager_access_role_arn = optional(string, "")
     # Direct credential configuration (when Secrets Manager disabled)
-    server_name                     = optional(string, "")
-    port                           = optional(number, 5432)
-    username                       = optional(string, "")
-    password                       = optional(string, "")
-    database_name                  = optional(string, "")
+    server_name   = optional(string, "")
+    port          = optional(number, 5432)
+    username      = optional(string, "")
+    password      = optional(string, "")
+    database_name = optional(string, "")
     # Connection settings
-    ssl_mode                       = optional(string, "require")
-    extra_connection_attributes    = optional(string, "")
+    ssl_mode                    = optional(string, "require")
+    extra_connection_attributes = optional(string, "")
   })
 
   validation {
@@ -306,27 +306,27 @@ variable "target_endpoint_config" {
   }
 
   validation {
-    condition = var.target_endpoint_config.port >= 1 && var.target_endpoint_config.port <= 65535
+    condition     = var.target_endpoint_config.port >= 1 && var.target_endpoint_config.port <= 65535
     error_message = "Port must be between 1 and 65535."
   }
 
   validation {
-    condition = contains(["none", "require", "verify-ca", "verify-full"], var.target_endpoint_config.ssl_mode)
+    condition     = contains(["none", "require", "verify-ca", "verify-full"], var.target_endpoint_config.ssl_mode)
     error_message = "SSL mode must be one of: none, require, verify-ca, verify-full."
   }
 
   validation {
-    condition = var.target_endpoint_config.secrets_manager_arn == "" || can(regex("^arn:aws:secretsmanager:", var.target_endpoint_config.secrets_manager_arn))
+    condition     = var.target_endpoint_config.secrets_manager_arn == "" || can(regex("^arn:aws:secretsmanager:", var.target_endpoint_config.secrets_manager_arn))
     error_message = "Secrets Manager ARN must be a valid AWS Secrets Manager ARN or empty."
   }
 
   validation {
-    condition = var.target_endpoint_config.secrets_manager_access_role_arn == "" || can(regex("^arn:aws:iam:", var.target_endpoint_config.secrets_manager_access_role_arn))
+    condition     = var.target_endpoint_config.secrets_manager_access_role_arn == "" || can(regex("^arn:aws:iam:", var.target_endpoint_config.secrets_manager_access_role_arn))
     error_message = "Secrets Manager access role ARN must be a valid AWS IAM role ARN or empty."
   }
 
   validation {
-    condition = !(contains(["postgres", "aurora-postgresql"], var.target_endpoint_config.engine_name) && var.target_endpoint_config.database_name == "")
+    condition     = !(contains(["postgres", "aurora-postgresql"], var.target_endpoint_config.engine_name) && var.target_endpoint_config.database_name == "")
     error_message = "Database name is required for PostgreSQL and Aurora PostgreSQL engines."
   }
 }
@@ -418,35 +418,35 @@ variable "security_config" {
   type = object({
     enforce_ssl                 = optional(bool, true)
     restrict_public_access      = optional(bool, true)
-    enable_detailed_monitoring  = optional(bool, null)  # null = auto-detect based on environment
-    enable_performance_insights = optional(bool, null)  # null = auto-detect based on environment
+    enable_detailed_monitoring  = optional(bool, null) # null = auto-detect based on environment
+    enable_performance_insights = optional(bool, null) # null = auto-detect based on environment
     network_isolation_level     = optional(string, "strict")
-    require_kms_encryption      = optional(bool, null)  # null = auto-detect based on environment
-    enable_deletion_protection  = optional(bool, null)  # null = auto-detect based on environment
+    require_kms_encryption      = optional(bool, null) # null = auto-detect based on environment
+    enable_deletion_protection  = optional(bool, null) # null = auto-detect based on environment
   })
-  
+
   default = {
     enforce_ssl                 = true
     restrict_public_access      = true
-    enable_detailed_monitoring  = null  # Auto-detect: true for prod, false for dev
-    enable_performance_insights = null  # Auto-detect: true for prod, false for dev/staging
+    enable_detailed_monitoring  = null # Auto-detect: true for prod, false for dev
+    enable_performance_insights = null # Auto-detect: true for prod, false for dev/staging
     network_isolation_level     = "strict"
-    require_kms_encryption      = null  # Auto-detect: true for prod, optional for dev
-    enable_deletion_protection  = null  # Auto-detect: true for prod, false for dev
+    require_kms_encryption      = null # Auto-detect: true for prod, optional for dev
+    enable_deletion_protection  = null # Auto-detect: true for prod, false for dev
   }
 
   validation {
-    condition = contains(["strict", "standard", "basic"], var.security_config.network_isolation_level)
+    condition     = contains(["strict", "standard", "basic"], var.security_config.network_isolation_level)
     error_message = "Network isolation level must be one of: strict, standard, basic."
   }
 
   validation {
-    condition = var.security_config.require_kms_encryption != false || !contains(["prod", "production"], var.environment)
+    condition     = var.security_config.require_kms_encryption != false || !contains(["prod", "production"], var.environment)
     error_message = "KMS encryption cannot be disabled in production environments for security compliance."
   }
 
   validation {
-    condition = var.security_config.enable_performance_insights != true || var.security_config.enable_detailed_monitoring != false
+    condition     = var.security_config.enable_performance_insights != true || var.security_config.enable_detailed_monitoring != false
     error_message = "Performance Insights requires detailed monitoring to be enabled."
   }
 }
@@ -474,7 +474,7 @@ variable "multi_az_config" {
     preferred_maintenance_window = optional(string, "sun:03:00-sun:04:00")
     auto_minor_version_upgrade   = optional(bool, true)
   })
-  
+
   default = {
     enable_multi_az              = false
     force_multi_az_production    = true
@@ -484,12 +484,12 @@ variable "multi_az_config" {
   }
 
   validation {
-    condition = var.multi_az_config.backup_retention_days >= 1 && var.multi_az_config.backup_retention_days <= 35
+    condition     = var.multi_az_config.backup_retention_days >= 1 && var.multi_az_config.backup_retention_days <= 35
     error_message = "Backup retention must be between 1 and 35 days."
   }
 
   validation {
-    condition = can(regex("^(mon|tue|wed|thu|fri|sat|sun):[0-2][0-9]:[0-5][0-9]-(mon|tue|wed|thu|fri|sat|sun):[0-2][0-9]:[0-5][0-9]$", var.multi_az_config.preferred_maintenance_window))
+    condition     = can(regex("^(mon|tue|wed|thu|fri|sat|sun):[0-2][0-9]:[0-5][0-9]-(mon|tue|wed|thu|fri|sat|sun):[0-2][0-9]:[0-5][0-9]$", var.multi_az_config.preferred_maintenance_window))
     error_message = "Maintenance window must be in format 'day:hh:mm-day:hh:mm' (e.g., 'sun:03:00-sun:04:00')."
   }
 }
@@ -516,14 +516,14 @@ variable "dms_instance_config" {
     instance_class    = string
     allocated_storage = number
     engine_version    = string
-    multi_az         = bool
+    multi_az          = bool
   })
-  
+
   default = {
     instance_class    = "dms.t3.micro"
     allocated_storage = 20
     engine_version    = "3.5.3"
-    multi_az         = false
+    multi_az          = false
   }
 
   validation {
@@ -532,12 +532,12 @@ variable "dms_instance_config" {
   }
 
   validation {
-    condition = can(regex("^dms\\.", var.dms_instance_config.instance_class))
+    condition     = can(regex("^dms\\.", var.dms_instance_config.instance_class))
     error_message = "Instance class must be a valid DMS instance type (e.g., dms.t3.micro, dms.r5.large)."
   }
 
   validation {
-    condition = can(regex("^[0-9]+\\.[0-9]+\\.[0-9]+$", var.dms_instance_config.engine_version))
+    condition     = can(regex("^[0-9]+\\.[0-9]+\\.[0-9]+$", var.dms_instance_config.engine_version))
     error_message = "Engine version must follow semantic versioning format (e.g., '3.5.3')."
   }
 
@@ -568,11 +568,11 @@ variable "migration_type" {
   EOT
   type        = string
   default     = "full-load-and-cdc"
-  
+
   validation {
     condition = contains([
-      "full-load", 
-      "cdc", 
+      "full-load",
+      "cdc",
       "full-load-and-cdc"
     ], var.migration_type)
     error_message = "Migration type must be: full-load, cdc, or full-load-and-cdc."
@@ -708,12 +708,12 @@ variable "tags" {
   }
 
   validation {
-    condition = length(var.tags) <= 50
+    condition     = length(var.tags) <= 50
     error_message = "Maximum 50 additional tags allowed (AWS limit is 50 total tags per resource)."
   }
 
   validation {
-    condition = !contains(keys(var.tags), "Name")
+    condition     = !contains(keys(var.tags), "Name")
     error_message = "The 'Name' tag is automatically managed by the module and cannot be overridden."
   }
 }
@@ -738,25 +738,25 @@ variable "environment_config" {
   EOT
   type = object({
     backup_retention_days = optional(number, 7)
-    monitoring_level     = optional(string, "basic")
-    performance_insights = optional(bool, false)
-    deletion_protection  = optional(bool, false)
+    monitoring_level      = optional(string, "basic")
+    performance_insights  = optional(bool, false)
+    deletion_protection   = optional(bool, false)
   })
-  
+
   default = {
     backup_retention_days = 7
-    monitoring_level     = "basic"
-    performance_insights = false
-    deletion_protection  = false
+    monitoring_level      = "basic"
+    performance_insights  = false
+    deletion_protection   = false
   }
 
   validation {
-    condition = var.environment_config.backup_retention_days >= 1 && var.environment_config.backup_retention_days <= 35
+    condition     = var.environment_config.backup_retention_days >= 1 && var.environment_config.backup_retention_days <= 35
     error_message = "Backup retention must be between 1 and 35 days."
   }
 
   validation {
-    condition = contains(["basic", "detailed", "enhanced"], var.environment_config.monitoring_level)
+    condition     = contains(["basic", "detailed", "enhanced"], var.environment_config.monitoring_level)
     error_message = "Monitoring level must be one of: basic, detailed, enhanced."
   }
 }

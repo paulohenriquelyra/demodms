@@ -1,0 +1,31 @@
+# Configuração Checkov para AWS DMS
+framework:
+  - terraform
+
+# Diretórios para escanear (apenas raiz e modules/dms)
+directory:
+  - .
+  - ./modules/dms
+
+# Arquivos e diretórios para ignorar
+skip-path:
+  - .terraform/
+  - .git/
+  - old/
+  - modules/dms/tests/
+  - modules/dms/.terraform/
+
+# Checks específicos para ignorar (com justificativa)
+skip-check:
+  # Ignorar checks que não se aplicam ao ambiente de desenvolvimento
+  - CKV_AWS_79  # Ensure Instance Metadata Service Version 1 is not enabled (não aplicável ao DMS)
+  - CKV_AWS_135 # Ensure that RDS instances do not have a public endpoint (será configurado conforme necessidade)
+
+# Configurações de saída
+output:
+  - cli
+  - sarif
+  - json
+
+# Soft fail para não quebrar o pipeline
+soft-fail: true

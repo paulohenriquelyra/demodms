@@ -194,7 +194,7 @@ resource "aws_security_group_rule" "dms_to_target" {
 # Required for detailed CloudWatch monitoring and Performance Insights
 resource "aws_iam_role" "dms_monitoring" {
   count = local.security_settings.monitoring_enabled ? 1 : 0
-  
+
   name_prefix = "${local.resource_names.dms_instance}-monitoring-"
   description = "IAM role for DMS enhanced monitoring and Performance Insights"
 
@@ -220,7 +220,7 @@ resource "aws_iam_role" "dms_monitoring" {
 # IAM Role Policy Attachment for DMS Monitoring
 resource "aws_iam_role_policy_attachment" "dms_monitoring" {
   count = local.security_settings.monitoring_enabled ? 1 : 0
-  
+
   role       = aws_iam_role.dms_monitoring[0].name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonDMSEnhancedMonitoringRole"
 }
@@ -237,7 +237,7 @@ resource "aws_dms_replication_instance" "main" {
   # Network isolation - use only private subnets (AWS Security Best Practice)
   replication_subnet_group_id = aws_dms_replication_subnet_group.main.id
   vpc_security_group_ids      = [aws_security_group.dms.id]
-  
+
   # Security - Public access restriction enforced
   # CKV_AWS_89: Ensure DMS replication instance is not publicly accessible
   publicly_accessible = local.security_settings.publicly_accessible
@@ -254,7 +254,7 @@ resource "aws_dms_replication_instance" "main" {
   # CKV_AWS_222: Ensure DMS gets all minor upgrades automatically
   auto_minor_version_upgrade   = var.multi_az_config.auto_minor_version_upgrade
   preferred_maintenance_window = var.multi_az_config.preferred_maintenance_window
-  apply_immediately           = true
+  apply_immediately            = true
 
   tags = local.resource_tags.dms_instance
 
