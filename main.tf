@@ -275,5 +275,9 @@ module "dms" {
     Terraform   = "true"
     CreatedBy   = "local-test"
     Purpose     = "validation"
+    # Novas tags adicionadas
+    Version    = "1.0.0"
+    Backup     = "required"
+    Monitoring = "enabled"
   }
 }
