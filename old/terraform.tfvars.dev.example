@@ -1,0 +1,218 @@
+# ============================================================================
+# Development Environment Configuration - terraform.tfvars
+# ============================================================================
+#
+# This file provides a complete example configuration for deploying AWS DMS
+# in a development environment with cost-optimized settings.
+#
+# Usage:
+# 1. Copy this file to terraform.tfvars
+# 2. Update all placeholder values with your actual resource IDs
+# 3. Run: terraform init && terraform plan && terraform apply
+#
+# Development Features:
+# ✅ Cost-optimized instance sizes and storage
+# ✅ Single-AZ deployment for cost savings
+# ✅ Basic monitoring (no Performance Insights)
+# ✅ Flexible credential management options
+# ✅ Simplified security settings
+# ============================================================================
+
+# ============================================================================
+# CORE PROJECT CONFIGURATION
+# ============================================================================
+
+project_name = "client-dms-dev"
+environment  = "dev"
+
+# ============================================================================
+# NETWORK INFRASTRUCTURE
+# ============================================================================
+# Replace these with your actual VPC and subnet IDs
+
+vpc_id = "vpc-xxxxxxxxxxxxxxxxx"  # Your development VPC ID
+subnet_ids = [
+  "subnet-xxxxxxxxxxxxxxxxx",     # Private subnet in AZ-1
+  "subnet-yyyyyyyyyyyyyyyyy"      # Private subnet in AZ-2 (required for DMS)
+]
+
+# ============================================================================
+# DATABASE ENDPOINT CONFIGURATION
+# ============================================================================
+
+# Credential Management
+# Set to false for development to use direct credentials (simpler setup)
+# Set to true for production-like testing with Secrets Manager
+enable_secrets_manager = false
+
+# Source Database Configuration (MySQL Example)
+source_database_engine   = "mysql"
+source_database_host     = "source-mysql.dev.company.internal"  # Your source DB hostname
+source_database_port     = 3306
+source_database_name     = "application_dev"
+source_database_username = "dms_user"
+source_database_password = "your-secure-source-password"  # Use strong password
+source_ssl_mode         = "require"
+source_extra_attributes = ""
+
+# Alternative: Secrets Manager Configuration (when enable_secrets_manager = true)
+# source_secrets_manager_arn      = "arn:aws:secretsmanager:us-east-1:123456789012:secret:dev/mysql-credentials-AbCdEf"
+# source_secrets_access_role_arn  = "arn:aws:iam::123456789012:role/dms-secrets-access-role"
+
+# Target Database Configuration (PostgreSQL Example)
+target_database_engine   = "postgres"
+target_database_host     = "target-postgres.dev.company.internal"  # Your target DB hostname
+target_database_port     = 5432
+target_database_name     = "application_dev"
+target_database_username = "dms_user"
+target_database_password = "your-secure-target-password"  # Use strong password
+target_ssl_mode         = "require"
+target_extra_attributes = ""
+
+# Alternative: Secrets Manager Configuration (when enable_secrets_manager = true)
+# target_secrets_manager_arn      = "arn:aws:secretsmanager:us-east-1:123456789012:secret:dev/postgres-credentials-GhIjKl"
+# target_secrets_access_role_arn  = "arn:aws:iam::123456789012:role/dms-secrets-access-role"
+
+# ============================================================================
+# SECURITY AND ENCRYPTION
+# ============================================================================
+
+# Security Groups - Replace with your actual security group IDs
+source_security_group_id = "sg-xxxxxxxxxxxxxxxxx"  # Security group of your source database
+target_security_group_id = "sg-yyyyyyyyyyyyyyyyy"  # Security group of your target database
+
+# KMS Encryption - Replace with your actual KMS key ARN
+kms_key_arn = "arn:aws:kms:us-east-1:123456789012:key/abcd1234-a123-456a-a12b-a123b4cd56ef"
+
+# ============================================================================
+# DMS INSTANCE CONFIGURATION - DEVELOPMENT OPTIMIZED
+# ============================================================================
+
+# Cost-optimized settings for development
+dms_instance_class    = "dms.t3.micro"    # Smallest instance for cost savings
+dms_allocated_storage = 20                # Minimum storage (20 GB)
+dms_engine_version    = "3.5.3"          # Latest stable version
+dms_multi_az         = false             # Single-AZ for cost optimization
+
+# ============================================================================
+# MIGRATION SETTINGS
+# ============================================================================
+
+migration_type = "full-load-and-cdc"
+
+# Table mappings - Migrate all tables (customize as needed)
+table_mappings = {
+  rules = [
+    {
+      rule-type = "selection"
+      rule-id   = "1"
+      rule-name = "include-all-tables"
+      object-locator = {
+        schema-name = "application_dev"  # Adjust to your schema name
+        table-name  = "%"
+      }
+      rule-action = "include"
+    }
+  ]
+}
+
+# Task settings optimized for development
+replication_task_settings = {
+  TargetMetadata = {
+    TargetSchema       = ""
+    SupportLobs        = true
+    FullLobMode        = false
+    LobChunkSize       = 32
+    LimitedSizeLobMode = true
+    LobMaxSize         = 16
+  }
+  FullLoadSettings = {
+    TargetTablePrepMode           = "DROP_AND_CREATE"
+    CreatePkAfterFullLoad         = true
+    MaxFullLoadSubTasks           = 2      # Reduced for smaller instance
+    TransactionConsistencyTimeout = 300
+    CommitRate                    = 1000   # Smaller batches for development
+  }
+  Logging = {
+    EnableLogging = true
+    LogComponents = [
+      {
+        Id       = "SOURCE_UNLOAD"
+        Severity = "LOGGER_SEVERITY_ERROR"
+      },
+      {
+        Id       = "TARGET_LOAD"
+        Severity = "LOGGER_SEVERITY_ERROR"
+      }
+    ]
+  }
+  ErrorBehavior = {
+    DataErrorPolicy           = "LOG_ERROR"
+    DataTruncationErrorPolicy = "LOG_ERROR"
+    TableErrorPolicy          = "SUSPEND_TABLE"
+    RecoverableErrorCount     = 3
+    RecoverableErrorInterval  = 5
+    FullLoadIgnoreConflicts   = true
+  }
+}
+
+# ============================================================================
+# ENVIRONMENT AND OPERATIONAL SETTINGS - DEVELOPMENT
+# ============================================================================
+
+# Security Settings (relaxed for development)
+enforce_ssl                 = true   # Still enforce SSL for security
+restrict_public_access      = true   # Always restrict public access
+enable_detailed_monitoring  = false  # Disabled for cost optimization
+enable_performance_insights = false  # Disabled for cost optimization
+network_isolation_level     = "standard"  # Allow package updates
+require_kms_encryption      = false  # Optional for development
+enable_deletion_protection  = false  # Allow easy cleanup
+
+# High Availability Settings (cost-optimized)
+enable_multi_az              = false  # Single-AZ for cost savings
+force_multi_az_production    = true   # Will be ignored in dev environment
+backup_retention_days        = 1      # Minimal backup retention
+preferred_maintenance_window = "sun:03:00-sun:04:00"
+auto_minor_version_upgrade   = true   # Keep up with security updates
+
+# ============================================================================
+# RESOURCE TAGGING
+# ============================================================================
+
+tags = {
+  Environment   = "development"
+  CostCenter    = "engineering"
+  Owner         = "infrastructure-team"
+  Purpose       = "database-migration-development"
+  Project       = "data-migration"
+  AutoShutdown  = "true"     # Can be automatically shut down for cost savings
+  Backup        = "optional"  # Backups are optional in development
+  Monitoring    = "basic"     # Basic monitoring only
+}
+
+# ============================================================================
+# CONFIGURATION NOTES
+# ============================================================================
+#
+# Development Environment Characteristics:
+# - Cost-optimized with minimal resources
+# - Single-AZ deployment for cost savings
+# - Basic monitoring without Performance Insights
+# - Flexible security settings for easier testing
+# - Short backup retention for cost optimization
+# - Auto-shutdown friendly for cost management
+#
+# Before Deployment:
+# 1. Replace all placeholder values (vpc-xxx, subnet-xxx, sg-xxx)
+# 2. Update database hostnames and credentials
+# 3. Verify KMS key ARN is correct
+# 4. Adjust table mappings for your specific schema
+# 5. Test connectivity between DMS and your databases
+#
+# Security Considerations:
+# - Even in development, use strong passwords
+# - Consider using Secrets Manager for credential management
+# - Ensure database security groups allow DMS access
+# - Verify SSL/TLS configuration on your databases
+# ============================================================================

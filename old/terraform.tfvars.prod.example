@@ -1,0 +1,262 @@
+# ============================================================================
+# Production Environment Configuration - terraform.tfvars
+# ============================================================================
+#
+# This file provides a complete example configuration for deploying AWS DMS
+# in a production environment with maximum security and reliability features.
+#
+# Usage:
+# 1. Copy this file to terraform.tfvars
+# 2. Update all placeholder values with your actual resource IDs
+# 3. Review security settings and compliance requirements
+# 4. Run: terraform init && terraform plan && terraform apply
+#
+# Production Features:
+# ✅ High availability with Multi-AZ deployment
+# ✅ Enhanced security with Secrets Manager (mandatory)
+# ✅ Comprehensive monitoring and Performance Insights
+# ✅ Extended backup retention and deletion protection
+# ✅ Strict network isolation and SSL enforcement
+# ============================================================================
+
+# ============================================================================
+# CORE PROJECT CONFIGURATION
+# ============================================================================
+
+project_name = "client-dms-prod"
+environment  = "production"
+
+# ============================================================================
+# NETWORK INFRASTRUCTURE
+# ============================================================================
+# Replace these with your actual production VPC and subnet IDs
+
+vpc_id = "vpc-xxxxxxxxxxxxxxxxx"  # Your production VPC ID
+subnet_ids = [
+  "subnet-xxxxxxxxxxxxxxxxx",     # Private subnet in AZ-1
+  "subnet-yyyyyyyyyyyyyyyyy",     # Private subnet in AZ-2
+  "subnet-zzzzzzzzzzzzzzzzz"      # Private subnet in AZ-3 (recommended for production)
+]
+
+# ============================================================================
+# DATABASE ENDPOINT CONFIGURATION
+# ============================================================================
+
+# Credential Management - MANDATORY for production
+enable_secrets_manager = true
+
+# Source Database Configuration (MySQL Example)
+source_database_engine = "mysql"
+source_database_port   = 3306
+source_database_name   = "application_prod"
+source_ssl_mode       = "require"  # SSL required for production
+source_extra_attributes = "initstmt=SET FOREIGN_KEY_CHECKS=0"
+
+# Secrets Manager Configuration (REQUIRED for production)
+source_secrets_manager_arn     = "arn:aws:secretsmanager:us-east-1:123456789012:secret:prod/mysql-credentials-AbCdEf"
+source_secrets_access_role_arn = "arn:aws:iam::123456789012:role/dms-secrets-access-role"
+
+# Target Database Configuration (Aurora PostgreSQL Example)
+target_database_engine = "aurora-postgresql"
+target_database_port   = 5432
+target_database_name   = "application_prod"
+target_ssl_mode       = "require"  # SSL required for production
+target_extra_attributes = "heartbeatEnable=true;heartbeatFrequency=30"
+
+# Secrets Manager Configuration (REQUIRED for production)
+target_secrets_manager_arn     = "arn:aws:secretsmanager:us-east-1:123456789012:secret:prod/aurora-credentials-GhIjKl"
+target_secrets_access_role_arn = "arn:aws:iam::123456789012:role/dms-secrets-access-role"
+
+# ============================================================================
+# SECURITY AND ENCRYPTION
+# ============================================================================
+
+# Security Groups - Replace with your actual production security group IDs
+source_security_group_id = "sg-xxxxxxxxxxxxxxxxx"  # Security group of your source database
+target_security_group_id = "sg-yyyyyyyyyyyyyyyyy"  # Security group of your target database
+
+# KMS Encryption - Replace with your actual production KMS key ARN
+kms_key_arn = "arn:aws:kms:us-east-1:123456789012:key/abcd1234-a123-456a-a12b-a123b4cd56ef"
+
+# ============================================================================
+# DMS INSTANCE CONFIGURATION - PRODUCTION GRADE
+# ============================================================================
+
+# Production-grade settings for high performance and reliability
+dms_instance_class    = "dms.r5.xlarge"   # Memory-optimized for production workloads
+dms_allocated_storage = 500               # Ample storage for production data
+dms_engine_version    = "3.5.3"          # Latest stable version
+dms_multi_az         = true              # High availability with automatic failover
+
+# ============================================================================
+# MIGRATION SETTINGS
+# ============================================================================
+
+migration_type = "full-load-and-cdc"
+
+# Table mappings - Production schema with transformations
+table_mappings = {
+  rules = [
+    {
+      rule-type = "selection"
+      rule-id   = "1"
+      rule-name = "include-application-tables"
+      object-locator = {
+        schema-name = "application_prod"
+        table-name  = "%"
+      }
+      rule-action = "include"
+    },
+    {
+      rule-type = "transformation"
+      rule-id   = "2"
+      rule-name = "rename-schema"
+      rule-target = "schema"
+      object-locator = {
+        schema-name = "application_prod"
+      }
+      rule-action = "rename"
+      value = "application"
+    }
+  ]
+}
+
+# Task settings optimized for production performance and reliability
+replication_task_settings = {
+  TargetMetadata = {
+    TargetSchema       = ""
+    SupportLobs        = true
+    FullLobMode        = false
+    LobChunkSize       = 64      # Larger chunks for better performance
+    LimitedSizeLobMode = true
+    LobMaxSize         = 32      # Increased for production data
+  }
+  FullLoadSettings = {
+    TargetTablePrepMode           = "DROP_AND_CREATE"
+    CreatePkAfterFullLoad         = true
+    MaxFullLoadSubTasks           = 8        # More parallel tasks for production
+    TransactionConsistencyTimeout = 600      # Longer timeout for large transactions
+    CommitRate                    = 10000    # Larger batches for better performance
+  }
+  Logging = {
+    EnableLogging = true
+    LogComponents = [
+      {
+        Id       = "SOURCE_UNLOAD"
+        Severity = "LOGGER_SEVERITY_DEFAULT"  # More detailed logging for production
+      },
+      {
+        Id       = "TARGET_LOAD"
+        Severity = "LOGGER_SEVERITY_DEFAULT"
+      },
+      {
+        Id       = "SOURCE_CAPTURE"
+        Severity = "LOGGER_SEVERITY_DEFAULT"
+      },
+      {
+        Id       = "TARGET_APPLY"
+        Severity = "LOGGER_SEVERITY_DEFAULT"
+      }
+    ]
+  }
+  ErrorBehavior = {
+    DataErrorPolicy           = "LOG_ERROR"
+    DataTruncationErrorPolicy = "LOG_ERROR"
+    TableErrorPolicy          = "SUSPEND_TABLE"
+    RecoverableErrorCount     = 10     # More retries for production stability
+    RecoverableErrorInterval  = 5
+    FullLoadIgnoreConflicts   = false  # Strict conflict handling for production
+  }
+  ChangeProcessingTuning = {
+    BatchApplyEnabled         = true
+    BatchApplyPreserveTransaction = true
+    BatchSplitSize           = 0
+    BatchApplyTimeoutMin     = 1
+    BatchApplyTimeoutMax     = 30
+    BatchApplyMemoryLimit    = 500
+  }
+}
+
+# ============================================================================
+# ENVIRONMENT AND OPERATIONAL SETTINGS - PRODUCTION
+# ============================================================================
+
+# Security Settings (maximum security for production)
+enforce_ssl                 = true   # Mandatory SSL enforcement
+restrict_public_access      = true   # Always restrict public access
+enable_detailed_monitoring  = true   # Enhanced monitoring for production
+enable_performance_insights = true   # Performance monitoring enabled
+network_isolation_level     = "strict"  # Strictest network isolation
+require_kms_encryption      = true   # Mandatory encryption
+enable_deletion_protection  = true   # Prevent accidental deletion
+
+# High Availability Settings (production-grade)
+enable_multi_az              = true   # High availability enabled
+force_multi_az_production    = true   # Force Multi-AZ for production
+backup_retention_days        = 30     # Extended backup retention
+preferred_maintenance_window = "sun:03:00-sun:04:00"  # Low-traffic window
+auto_minor_version_upgrade   = true   # Automatic security updates
+
+# ============================================================================
+# RESOURCE TAGGING
+# ============================================================================
+
+tags = {
+  Environment     = "production"
+  CostCenter      = "operations"
+  Owner           = "infrastructure-team"
+  Purpose         = "production-database-migration"
+  Project         = "data-migration"
+  Compliance      = "sox-compliant"
+  DataClass       = "confidential"
+  Backup          = "required"
+  Monitoring      = "24x7"
+  AutoShutdown    = "false"        # Never auto-shutdown production
+  CriticalSystem  = "true"
+  BusinessUnit    = "operations"
+  SLA             = "99.9"
+  DisasterRecovery = "required"
+}
+
+# ============================================================================
+# CONFIGURATION NOTES
+# ============================================================================
+#
+# Production Environment Characteristics:
+# - High availability with Multi-AZ deployment
+# - Enhanced security with mandatory Secrets Manager
+# - Comprehensive monitoring and Performance Insights
+# - Extended backup retention and deletion protection
+# - Strict network isolation and SSL enforcement
+# - Production-grade instance sizes and storage
+# - Detailed logging and error handling
+#
+# Security Requirements:
+# 1. Secrets Manager is MANDATORY for production
+# 2. SSL/TLS is enforced for all database connections
+# 3. KMS encryption is required for all resources
+# 4. Network isolation is set to strict mode
+# 5. Deletion protection prevents accidental resource deletion
+#
+# Before Deployment:
+# 1. Ensure all Secrets Manager secrets are properly configured
+# 2. Verify IAM roles have appropriate permissions
+# 3. Confirm KMS key permissions for DMS service
+# 4. Test database connectivity and SSL configuration
+# 5. Review and approve all security settings
+# 6. Validate backup and disaster recovery procedures
+#
+# Monitoring and Alerting:
+# - Performance Insights provides detailed performance metrics
+# - Enhanced monitoring offers comprehensive CloudWatch metrics
+# - Configure CloudWatch alarms for critical metrics
+# - Set up SNS notifications for task failures
+# - Monitor replication lag and error rates
+#
+# Compliance Considerations:
+# - All data is encrypted in transit and at rest
+# - Access is logged and monitored
+# - Backup retention meets regulatory requirements
+# - Network access is strictly controlled
+# - Secrets are managed through AWS Secrets Manager
+# ============================================================================

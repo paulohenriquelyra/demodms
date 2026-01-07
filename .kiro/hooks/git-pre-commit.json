@@ -1,0 +1,13 @@
+{
+  "name": "Git Pre-commit Check",
+  "description": "Executa validações antes do commit",
+  "trigger": {
+    "type": "manual",
+    "button_text": "Pre-commit Check"
+  },
+  "action": {
+    "type": "agent_message",
+    "message": "Execute terraform validate, terraform fmt, e verifique se todos os arquivos estão prontos para commit. Liste quaisquer problemas encontrados."
+  },
+  "enabled": true
+}

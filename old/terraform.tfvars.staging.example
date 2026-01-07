@@ -1,0 +1,263 @@
+# ============================================================================
+# Staging Environment Configuration - terraform.tfvars
+# ============================================================================
+#
+# This file provides a complete example configuration for deploying AWS DMS
+# in a staging environment with production-like settings but cost optimizations.
+#
+# Usage:
+# 1. Copy this file to terraform.tfvars
+# 2. Update all placeholder values with your actual resource IDs
+# 3. Review settings for staging-specific requirements
+# 4. Run: terraform init && terraform plan && terraform apply
+#
+# Staging Features:
+# ✅ Production-like configuration for realistic testing
+# ✅ Secrets Manager enabled for security testing
+# ✅ Enhanced monitoring without Performance Insights
+# ✅ Single-AZ deployment for cost optimization
+# ✅ Moderate backup retention and security settings
+# ============================================================================
+
+# ============================================================================
+# CORE PROJECT CONFIGURATION
+# ============================================================================
+
+project_name = "client-dms-staging"
+environment  = "staging"
+
+# ============================================================================
+# NETWORK INFRASTRUCTURE
+# ============================================================================
+# Replace these with your actual staging VPC and subnet IDs
+
+vpc_id = "vpc-xxxxxxxxxxxxxxxxx"  # Your staging VPC ID
+subnet_ids = [
+  "subnet-xxxxxxxxxxxxxxxxx",     # Private subnet in AZ-1
+  "subnet-yyyyyyyyyyyyyyyyy"      # Private subnet in AZ-2 (required for DMS)
+]
+
+# ============================================================================
+# DATABASE ENDPOINT CONFIGURATION
+# ============================================================================
+
+# Credential Management - Enabled for production-like testing
+enable_secrets_manager = true
+
+# Source Database Configuration (MySQL Example)
+source_database_engine = "mysql"
+source_database_port   = 3306
+source_database_name   = "application_staging"
+source_ssl_mode       = "require"  # SSL required for realistic testing
+source_extra_attributes = ""
+
+# Secrets Manager Configuration (for production-like testing)
+source_secrets_manager_arn     = "arn:aws:secretsmanager:us-east-1:123456789012:secret:staging/mysql-credentials-AbCdEf"
+source_secrets_access_role_arn = "arn:aws:iam::123456789012:role/dms-secrets-access-role"
+
+# Target Database Configuration (Aurora PostgreSQL Example)
+target_database_engine = "aurora-postgresql"
+target_database_port   = 5432
+target_database_name   = "application_staging"
+target_ssl_mode       = "require"  # SSL required for realistic testing
+target_extra_attributes = "heartbeatEnable=true;heartbeatFrequency=60"
+
+# Secrets Manager Configuration (for production-like testing)
+target_secrets_manager_arn     = "arn:aws:secretsmanager:us-east-1:123456789012:secret:staging/aurora-credentials-GhIjKl"
+target_secrets_access_role_arn = "arn:aws:iam::123456789012:role/dms-secrets-access-role"
+
+# ============================================================================
+# SECURITY AND ENCRYPTION
+# ============================================================================
+
+# Security Groups - Replace with your actual staging security group IDs
+source_security_group_id = "sg-xxxxxxxxxxxxxxxxx"  # Security group of your source database
+target_security_group_id = "sg-yyyyyyyyyyyyyyyyy"  # Security group of your target database
+
+# KMS Encryption - Replace with your actual staging KMS key ARN
+kms_key_arn = "arn:aws:kms:us-east-1:123456789012:key/abcd1234-a123-456a-a12b-a123b4cd56ef"
+
+# ============================================================================
+# DMS INSTANCE CONFIGURATION - STAGING BALANCED
+# ============================================================================
+
+# Balanced settings for staging - production-like but cost-optimized
+dms_instance_class    = "dms.t3.large"    # Moderate instance size
+dms_allocated_storage = 100               # Moderate storage allocation
+dms_engine_version    = "3.5.3"          # Latest stable version
+dms_multi_az         = false             # Single-AZ for cost optimization
+
+# ============================================================================
+# MIGRATION SETTINGS
+# ============================================================================
+
+migration_type = "full-load-and-cdc"
+
+# Table mappings - Staging schema with prefix transformation for testing
+table_mappings = {
+  rules = [
+    {
+      rule-type = "selection"
+      rule-id   = "1"
+      rule-name = "include-staging-tables"
+      object-locator = {
+        schema-name = "application_staging"
+        table-name  = "%"
+      }
+      rule-action = "include"
+    },
+    {
+      rule-type = "transformation"
+      rule-id   = "2"
+      rule-name = "add-staging-prefix"
+      rule-target = "table"
+      object-locator = {
+        schema-name = "application_staging"
+        table-name  = "%"
+      }
+      rule-action = "add-prefix"
+      value = "staging_"
+    }
+  ]
+}
+
+# Task settings optimized for staging testing
+replication_task_settings = {
+  TargetMetadata = {
+    TargetSchema       = ""
+    SupportLobs        = true
+    FullLobMode        = false
+    LobChunkSize       = 32
+    LimitedSizeLobMode = true
+    LobMaxSize         = 16
+  }
+  FullLoadSettings = {
+    TargetTablePrepMode           = "DROP_AND_CREATE"
+    CreatePkAfterFullLoad         = true
+    MaxFullLoadSubTasks           = 4        # Moderate parallelism
+    TransactionConsistencyTimeout = 300
+    CommitRate                    = 5000     # Balanced batch size
+  }
+  Logging = {
+    EnableLogging = true
+    LogComponents = [
+      {
+        Id       = "SOURCE_UNLOAD"
+        Severity = "LOGGER_SEVERITY_DEFAULT"
+      },
+      {
+        Id       = "TARGET_LOAD"
+        Severity = "LOGGER_SEVERITY_DEFAULT"
+      },
+      {
+        Id       = "SOURCE_CAPTURE"
+        Severity = "LOGGER_SEVERITY_ERROR"    # Less verbose for staging
+      },
+      {
+        Id       = "TARGET_APPLY"
+        Severity = "LOGGER_SEVERITY_ERROR"
+      }
+    ]
+  }
+  ErrorBehavior = {
+    DataErrorPolicy           = "LOG_ERROR"
+    DataTruncationErrorPolicy = "LOG_ERROR"
+    TableErrorPolicy          = "SUSPEND_TABLE"
+    RecoverableErrorCount     = 5
+    RecoverableErrorInterval  = 5
+    FullLoadIgnoreConflicts   = true
+  }
+}
+
+# ============================================================================
+# ENVIRONMENT AND OPERATIONAL SETTINGS - STAGING
+# ============================================================================
+
+# Security Settings (production-like but flexible for testing)
+enforce_ssl                 = true   # SSL enforcement for realistic testing
+restrict_public_access      = true   # Always restrict public access
+enable_detailed_monitoring  = true   # Enhanced monitoring for testing
+enable_performance_insights = false  # Disabled for cost optimization
+network_isolation_level     = "standard"  # Allow package updates for testing
+require_kms_encryption      = true   # Encryption required for security testing
+enable_deletion_protection  = true   # Protect staging data during testing
+
+# High Availability Settings (cost-optimized)
+enable_multi_az              = false  # Single-AZ for cost savings
+force_multi_az_production    = true   # Will be ignored in staging
+backup_retention_days        = 7      # Weekly backup retention
+preferred_maintenance_window = "sun:04:00-sun:05:00"  # Different from production
+auto_minor_version_upgrade   = true   # Keep up with updates
+
+# ============================================================================
+# RESOURCE TAGGING
+# ============================================================================
+
+tags = {
+  Environment     = "staging"
+  CostCenter      = "engineering"
+  Owner           = "infrastructure-team"
+  Purpose         = "pre-production-testing"
+  Project         = "data-migration"
+  TestingPhase    = "integration"
+  Compliance      = "required"
+  DataClass       = "internal"
+  Backup          = "required"
+  Monitoring      = "enhanced"
+  AutoShutdown    = "false"        # Keep running for continuous testing
+  BusinessUnit    = "engineering"
+  SLA             = "99.0"
+  TestData        = "true"
+}
+
+# ============================================================================
+# CONFIGURATION NOTES
+# ============================================================================
+#
+# Staging Environment Characteristics:
+# - Production-like configuration for realistic testing
+# - Secrets Manager enabled for security workflow testing
+# - Enhanced monitoring without Performance Insights (cost optimization)
+# - Single-AZ deployment for cost savings
+# - Moderate instance sizes and storage allocation
+# - SSL enforcement and encryption for security testing
+# - Flexible network isolation for testing scenarios
+#
+# Testing Capabilities:
+# - Full production workflow testing with Secrets Manager
+# - SSL/TLS connection testing
+# - Migration performance and reliability testing
+# - Monitoring and alerting validation
+# - Disaster recovery procedure testing
+# - Security configuration validation
+#
+# Before Deployment:
+# 1. Configure Secrets Manager secrets for staging databases
+# 2. Verify IAM roles and permissions are properly set
+# 3. Ensure staging databases are accessible and configured
+# 4. Test SSL/TLS connectivity to both source and target
+# 5. Validate KMS key permissions and access
+# 6. Review table mappings for staging data requirements
+#
+# Cost Optimization Features:
+# - Single-AZ deployment reduces costs by ~50%
+# - Performance Insights disabled saves monitoring costs
+# - Moderate instance sizes balance performance and cost
+# - Shorter backup retention reduces storage costs
+# - Standard network isolation allows necessary testing flexibility
+#
+# Testing Scenarios:
+# - End-to-end migration workflow validation
+# - Security configuration and compliance testing
+# - Performance benchmarking and optimization
+# - Failure and recovery scenario testing
+# - Integration with monitoring and alerting systems
+# - Data validation and consistency checks
+#
+# Monitoring and Validation:
+# - Enhanced monitoring provides detailed metrics
+# - CloudWatch logs capture all migration activities
+# - Set up staging-specific alerts and notifications
+# - Monitor replication lag and performance metrics
+# - Validate data consistency between source and target
+# ============================================================================

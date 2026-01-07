@@ -1,0 +1,13 @@
+{
+  "name": "Terraform Validate on Save",
+  "description": "Executa terraform validate quando arquivos .tf são salvos",
+  "trigger": {
+    "type": "file_save",
+    "pattern": "**/*.tf"
+  },
+  "action": {
+    "type": "shell_command",
+    "command": "terraform validate && terraform fmt -check=true -diff=true"
+  },
+  "enabled": true
+}
